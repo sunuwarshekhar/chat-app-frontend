@@ -1,0 +1,10 @@
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  text: string;
+  displayName: string;
+  createdAt: string;
+  /** @deprecated use createdAt */
+  timestamp?: string;
+}
