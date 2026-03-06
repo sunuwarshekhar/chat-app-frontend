@@ -633,6 +633,80 @@
   align-self: flex-end;
 }
 
+.message-item--sent .message-text[role='button'] {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+.message-item--sent .message-text[role='button']:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.message-edited-label {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.message-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+.message-edit-input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: none;
+}
+.message-edit-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+.message-edit-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.7);
+}
+.message-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+.message-edit-cancel,
+.message-edit-save {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+.message-edit-cancel {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+.message-edit-cancel:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.message-edit-save {
+  background: white;
+  color: var(--primary);
+}
+.message-edit-save:hover:not(:disabled) {
+  opacity: 0.95;
+}
+.message-edit-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .message-list-empty {
   display: flex;
   align-items: center;

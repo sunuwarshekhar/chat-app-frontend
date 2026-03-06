@@ -108,6 +108,35 @@ export function Chat() {
 
   useEffect(() => {
     if (!socket) return;
+    const handler = (msg: ChatMessage) => {
+      if (msg.conversationId === selectedId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msg.id ? { ...m, ...msg } : m)),
+        );
+      }
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === msg.conversationId && c.lastMessage?.id === msg.id
+            ? {
+                ...c,
+                lastMessage: {
+                  ...c.lastMessage,
+                  text: msg.text,
+                  createdAt: msg.createdAt,
+                },
+              }
+            : c,
+        ),
+      );
+    };
+    socket.on('message_edited', handler);
+    return () => {
+      socket.off('message_edited', handler);
+    };
+  }, [socket, selectedId]);
+
+  useEffect(() => {
+    if (!socket) return;
     const onOnline = (data: { userId: string }) => {
       setOnlineUserIds((prev) => new Set(prev).add(data.userId));
     };
@@ -179,6 +208,18 @@ export function Chat() {
     (text: string) => {
       if (!selectedId) return;
       emit('send_message', {
+        conversationId: selectedId,
+        text,
+      });
+    },
+    [selectedId, emit],
+  );
+
+  const editMessage = useCallback(
+    (messageId: string, text: string) => {
+      if (!selectedId) return;
+      emit('edit_message', {
+        messageId,
         conversationId: selectedId,
         text,
       });
@@ -311,6 +352,7 @@ export function Chat() {
                 <MessageList
                   messages={messages}
                   currentUserId={user?.id ?? ''}
+                  onEditMessage={editMessage}
                 />
               )}
               {selectedId && typingInConversation[selectedId]?.length > 0 && (

@@ -5,6 +5,7 @@ export interface ChatMessage {
   text: string;
   displayName: string;
   createdAt: string;
+  updatedAt?: string;
   /** @deprecated use createdAt */
   timestamp?: string;
 }
