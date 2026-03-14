@@ -6,6 +6,11 @@ import { MessageInput } from '../components/MessageInput';
 import { ConversationList } from '../components/ConversationList';
 import { NewChatModal } from '../components/NewChatModal';
 import { CreateGroupModal } from '../components/CreateGroupModal';
+import { IncomingCallModal } from '../components/IncomingCallModal';
+import { OutgoingCallModal } from '../components/OutgoingCallModal';
+import { ActiveCallView } from '../components/ActiveCallView';
+import { PhoneIcon, VideoCallIcon } from '../components/CallIcons';
+import { useWebRTC } from '../hooks/useWebRTC';
 import * as conversationsApi from '../api/conversations';
 import * as messagesApi from '../api/messages';
 import type { Conversation, ChatMessage } from '../types';
@@ -27,6 +32,25 @@ function formatLastSeen(iso: string): string {
 export function Chat() {
   const { user, logout } = useAuth();
   const { socket, connected, emit } = useSocket();
+  const {
+    callState,
+    callType,
+    incomingCall,
+    remotePeerName,
+    callDurationSeconds,
+    outgoingElapsedSeconds,
+    isMuted,
+    isVideoOff,
+    localVideoRef,
+    remoteStream,
+    remoteTrackCount,
+    startCall,
+    acceptCall,
+    rejectCall,
+    endCall,
+    toggleMute,
+    toggleVideo,
+  } = useWebRTC({ socket });
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -52,22 +76,32 @@ export function Chat() {
   }, [user]);
 
   useEffect(() => {
-    loadConversations();
+    let mounted = true;
+    if (mounted) void loadConversations();
+    return () => {
+      mounted = false;
+    };
   }, [loadConversations]);
 
   useEffect(() => {
     if (!selectedId || !user) return;
-    setLoading(true);
-    messagesApi
-      .getMessages(selectedId, { limit: 50 })
-      .then((list) => {
-        setMessages(list);
-      })
-      .catch((err) => {
+    let mounted = true;
+    const fetchMessages = async () => {
+      setLoading(true);
+      try {
+        const list = await messagesApi.getMessages(selectedId, { limit: 50 });
+        if (mounted) setMessages(list);
+      } catch (err) {
         console.error('Failed to load messages', err);
-        setMessages([]);
-      })
-      .finally(() => setLoading(false));
+        if (mounted) setMessages([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    void fetchMessages();
+    return () => {
+      mounted = false;
+    };
   }, [selectedId, user]);
 
   useEffect(() => {
@@ -279,7 +313,7 @@ export function Chat() {
             onClose={() => setNewChatOpen(false)}
             onConversationCreated={(id) => {
               setSelectedId(id);
-              loadConversations();
+              void loadConversations();
             }}
             currentUserId={user?.id ?? ''}
           />
@@ -288,7 +322,7 @@ export function Chat() {
             onClose={() => setNewGroupOpen(false)}
             onConversationCreated={(id) => {
               setSelectedId(id);
-              loadConversations();
+              void loadConversations();
             }}
             currentUserId={user?.id ?? ''}
           />
@@ -300,82 +334,169 @@ export function Chat() {
             </div>
           ) : (
             <>
-              {selectedConversation && (
-                <>
-                  <div className='chat-conversation-header'>
-                    <span className='chat-conversation-header-title'>
-                      {selectedConversation.type === 'group' &&
-                      selectedConversation.name
-                        ? selectedConversation.name
-                        : (() => {
-                            const other = selectedConversation.members?.find(
-                              (m) => m.userId !== user?.id,
-                            );
-                            const name =
-                              other?.displayName ??
-                              other?.user?.displayName ??
-                              other?.user?.email ??
-                              (other as { email?: string })?.email;
-                            return name?.trim() || 'Unknown';
-                          })()}
-                    </span>
-                    {selectedConversation.type === 'dm' &&
-                      (() => {
-                        const other = selectedConversation.members?.find(
-                          (m) => m.userId !== user?.id,
-                        );
-                        const otherId = other?.userId;
-                        if (!otherId) return null;
-                        const online = onlineUserIds.has(otherId);
-                        const lastSeen =
-                          lastSeenAtByUser[otherId] ?? other?.lastSeenAt;
-                        return (
-                          <span className='chat-conversation-header-status'>
-                            {online ? (
-                              <span className='presence-online'>
-                                <span className='presence-dot' /> Online
-                              </span>
-                            ) : lastSeen ? (
-                              <span className='presence-last-seen'>
-                                Last seen {formatLastSeen(lastSeen)}
-                              </span>
-                            ) : null}
-                          </span>
-                        );
-                      })()}
+              <div className='chat-main-scroll'>
+                {selectedConversation && (
+                  <>
+                    <div className='chat-conversation-header'>
+                      <span className='chat-conversation-header-title'>
+                        {selectedConversation.type === 'group' &&
+                        selectedConversation.name
+                          ? selectedConversation.name
+                          : (() => {
+                              const other = selectedConversation.members?.find(
+                                (m) => m.userId !== user?.id,
+                              );
+                              const name =
+                                other?.displayName ??
+                                other?.user?.displayName ??
+                                other?.user?.email ??
+                                (other as { email?: string })?.email;
+                              return name?.trim() || 'Unknown';
+                            })()}
+                      </span>
+                      {selectedConversation.type === 'dm' &&
+                        (() => {
+                          const other = selectedConversation.members?.find(
+                            (m) => m.userId !== user?.id,
+                          );
+                          const otherId = other?.userId;
+                          if (!otherId) return null;
+                          const online = onlineUserIds.has(otherId);
+                          const lastSeen =
+                            lastSeenAtByUser[otherId] ?? other?.lastSeenAt;
+                          return (
+                            <span className='chat-conversation-header-status'>
+                              {online ? (
+                                <span className='presence-online'>
+                                  <span className='presence-dot' /> Online
+                                </span>
+                              ) : lastSeen ? (
+                                <span className='presence-last-seen'>
+                                  Last seen {formatLastSeen(lastSeen)}
+                                </span>
+                              ) : null}
+                            </span>
+                          );
+                        })()}
+                      {selectedConversation.type === 'dm' &&
+                        callState === 'idle' && (
+                          <div className='header-call-buttons'>
+                            <button
+                              type='button'
+                              className='header-call-btn'
+                              title='Voice call'
+                              onClick={() => {
+                                const other =
+                                  selectedConversation.members?.find(
+                                    (m) => m.userId !== user?.id,
+                                  );
+                                const name =
+                                  other?.displayName ??
+                                  other?.user?.displayName ??
+                                  other?.user?.email;
+                                void startCall(
+                                  selectedId!,
+                                  'audio',
+                                  name ?? undefined,
+                                );
+                              }}
+                            >
+                              <PhoneIcon size={20} />
+                            </button>
+                            <button
+                              type='button'
+                              className='header-call-btn'
+                              title='Video call'
+                              onClick={() => {
+                                const other =
+                                  selectedConversation.members?.find(
+                                    (m) => m.userId !== user?.id,
+                                  );
+                                const name =
+                                  other?.displayName ??
+                                  other?.user?.displayName ??
+                                  other?.user?.email;
+                                void startCall(
+                                  selectedId!,
+                                  'video',
+                                  name ?? undefined,
+                                );
+                              }}
+                            >
+                              <VideoCallIcon size={20} />
+                            </button>
+                          </div>
+                        )}
+                    </div>
+                  </>
+                )}
+                {loading ? (
+                  <div className='chat-loading'>Loading messages…</div>
+                ) : (
+                  <MessageList
+                    messages={messages}
+                    currentUserId={user?.id ?? ''}
+                    onEditMessage={editMessage}
+                  />
+                )}
+                {selectedId && typingInConversation[selectedId]?.length > 0 && (
+                  <div className='chat-typing-status'>
+                    {typingInConversation[selectedId]
+                      .map((t) => t.displayName)
+                      .join(', ')}{' '}
+                    typing…
                   </div>
-                </>
-              )}
-              {loading ? (
-                <div className='chat-loading'>Loading messages…</div>
-              ) : (
-                <MessageList
-                  messages={messages}
-                  currentUserId={user?.id ?? ''}
-                  onEditMessage={editMessage}
+                )}
+              </div>
+              <div className='chat-main-input'>
+                <MessageInput
+                  onSend={sendMessage}
+                  disabled={!connected}
+                  placeholder={
+                    selectedId ? 'Type a message…' : 'Select a conversation'
+                  }
+                  conversationId={selectedId}
+                  onTyping={emit}
                 />
-              )}
-              {selectedId && typingInConversation[selectedId]?.length > 0 && (
-                <div className='chat-typing-status'>
-                  {typingInConversation[selectedId]
-                    .map((t) => t.displayName)
-                    .join(', ')}{' '}
-                  typing…
-                </div>
-              )}
-              <MessageInput
-                onSend={sendMessage}
-                disabled={!connected}
-                placeholder={
-                  selectedId ? 'Type a message…' : 'Select a conversation'
-                }
-                conversationId={selectedId}
-                onTyping={emit}
-              />
+              </div>
             </>
           )}
         </div>
       </div>
+
+      {/* ── Call Modals ───────────────────────────── */}
+      {callState === 'incoming' && incomingCall && (
+        <IncomingCallModal
+          callerName={incomingCall.callerName}
+          callType={incomingCall.type}
+          onAccept={() => void acceptCall()}
+          onReject={rejectCall}
+        />
+      )}
+      {callState === 'outgoing' && (
+        <OutgoingCallModal
+          calleeName={remotePeerName}
+          callType={callType}
+          localVideoRef={localVideoRef}
+          outgoingElapsedSeconds={outgoingElapsedSeconds}
+          onCancel={endCall}
+        />
+      )}
+      {callState === 'active' && (
+        <ActiveCallView
+          calleeName={remotePeerName}
+          callType={callType}
+          durationSeconds={callDurationSeconds}
+          isMuted={isMuted}
+          isVideoOff={isVideoOff}
+          localVideoRef={localVideoRef}
+          remoteStream={remoteStream}
+          remoteTrackCount={remoteTrackCount}
+          onMute={toggleMute}
+          onVideoToggle={toggleVideo}
+          onHangup={endCall}
+        />
+      )}
     </div>
   );
 }

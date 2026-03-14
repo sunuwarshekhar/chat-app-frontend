@@ -1,8 +1,10 @@
-/* App-level layout */
+/* App-level layout: fixed viewport height so only inner panels scroll */
 #root {
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .auth-loading {
@@ -271,6 +273,19 @@
   flex-direction: column;
   min-height: 0;
   padding: 1rem;
+}
+
+.chat-main-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-main-input {
+  flex-shrink: 0;
+  padding-top: 0.75rem;
 }
 
 .chat-placeholder,

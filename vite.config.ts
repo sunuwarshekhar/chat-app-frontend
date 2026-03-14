@@ -32,6 +32,8 @@ export default defineConfig({
   plugins: [react(), suppressProxyConnectionErrors()],
   server: {
     port: 5173,
+    host: true, // listen on all network interfaces
+    allowedHosts: ['.ngrok-free.app'], // allow any ngrok URL
     proxy: {
       '/api': {
         target: 'http://localhost:3000',

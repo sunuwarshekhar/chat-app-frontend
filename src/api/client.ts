@@ -1,6 +1,10 @@
+const rawApi = import.meta.env.VITE_API_URL;
 const BASE =
-  import.meta.env.VITE_API_URL ??
-  (typeof window !== 'undefined' ? '' : 'http://localhost:3000');
+  typeof rawApi === 'string' && rawApi.trim() !== ''
+    ? rawApi.trim()
+    : typeof window !== 'undefined'
+      ? ''
+      : 'http://localhost:3000';
 
 function resolve(path: string): string {
   if (BASE && path.startsWith('/')) return `${BASE.replace(/\/$/, '')}${path}`;
@@ -42,7 +46,7 @@ export function getApiBase(): string {
 
 /** Socket.io URL. Same as API base so the browser sends the HttpOnly auth cookie (same-origin or proxy). */
 export function getSocketUrl(): string {
-  if (import.meta.env.VITE_WS_URL !== undefined)
-    return import.meta.env.VITE_WS_URL;
+  const ws = import.meta.env.VITE_WS_URL;
+  if (typeof ws === 'string' && ws.trim() !== '') return ws.trim();
   return getApiBase();
 }

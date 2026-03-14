@@ -1,0 +1,480 @@
+/* ── Call Modal Overlay ─────────────────────────────────── */
+.call-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease;
+}
+
+/* ── Full-screen active call (WhatsApp-style) ────────────── */
+.call-modal-overlay--fullscreen {
+  z-index: 9999;
+  background: #0d1117;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.call-modal-overlay--fullscreen .active-call-modal {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 80%;
+  max-width: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  animation: none;
+}
+
+.call-modal-overlay--fullscreen .call-video-container {
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: unset;
+  border-radius: 0;
+  background: #000;
+}
+
+.call-modal-overlay--fullscreen .call-remote-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.call-modal-overlay--fullscreen .call-local-pip-wrap {
+  bottom: 1rem;
+  right: 1rem;
+  width: 120px;
+  height: 90px;
+  border-radius: 12px;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.call-modal-overlay--fullscreen .call-local-pip {
+  width: 100%;
+  height: 100%;
+}
+
+.call-modal-overlay--fullscreen .call-duration-container.video-duration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: env(safe-area-inset-top, 0.75rem) 1rem 0.75rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
+  margin: 0;
+}
+
+.call-modal-overlay--fullscreen
+  .call-duration-container.video-duration
+  .call-duration {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.95rem;
+}
+
+.call-modal-overlay--fullscreen .call-modal-actions.active-call-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem 1rem calc(1.25rem + env(safe-area-inset-bottom, 0));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.call-modal-overlay--fullscreen .call-control-btn,
+.call-modal-overlay--fullscreen .call-btn.end-btn {
+  flex-shrink: 0;
+}
+
+/* Audio call full-screen: centered content */
+.call-modal-overlay--fullscreen .call-audio-layout {
+  flex: 1;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.call-modal-overlay--fullscreen .call-audio-avatar {
+  width: 120px;
+  height: 120px;
+  font-size: 3rem;
+}
+
+.call-modal-overlay--fullscreen .call-modal-name {
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.call-modal-overlay--fullscreen .call-duration-container.audio-duration {
+  margin: 0.75rem 0;
+}
+
+.call-modal-overlay--fullscreen
+  .call-duration-container.audio-duration
+  .call-duration {
+  font-size: 1.35rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Audio call: actions in flow at bottom, not overlaying */
+.call-modal-overlay--fullscreen
+  .active-call-modal:has(.call-audio-layout)
+  .call-modal-actions.active-call-actions {
+  position: relative;
+  background: transparent;
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0));
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.call-modal {
+  background: #1a1f2e;
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Avatar & Text ──────────────────────────────────────── */
+.call-modal-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6c63ff, #48bfe3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.call-modal-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e8eaf6;
+  margin: 0;
+}
+
+.call-modal-status {
+  font-size: 0.9rem;
+  color: #9ea3b8;
+  margin: 0;
+}
+
+/* ── Action Buttons ─────────────────────────────────────── */
+.call-modal-actions {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.call-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.8rem 1.4rem;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.call-btn:hover {
+  transform: scale(1.07);
+  opacity: 0.92;
+}
+
+.call-btn-icon {
+  font-size: 1.4rem;
+}
+
+.accept-btn {
+  background: #22c55e;
+  color: #fff;
+}
+
+.reject-btn {
+  background: #ef4444;
+  color: #fff;
+}
+
+.end-btn {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* ── Active Call Controls ───────────────────────────────── */
+.active-call-actions {
+  gap: 1rem;
+}
+
+.call-control-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #2d3349;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.call-control-btn:hover {
+  background: #3d4460;
+  transform: scale(1.08);
+}
+.call-control-btn.active {
+  background: #4f46e5;
+}
+
+/* ── Call Duration ──────────────────────────────────────── */
+.call-duration {
+  font-size: 1rem;
+  color: #9ea3b8;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+/* ── Video Layout ───────────────────────────────────────── */
+.call-video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0d1117;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.call-remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.call-local-pip-wrap {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  border-radius: 8px;
+  border: 2px solid #4f46e5;
+  overflow: hidden;
+  background: #0d1117;
+}
+
+.call-local-pip {
+  display: block;
+  width: 90px;
+  height: 68px;
+  object-fit: cover;
+}
+
+.call-pip-label {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.call-local-preview {
+  width: 100%;
+  border-radius: 12px;
+  background: #0d1117;
+  object-fit: cover;
+  max-height: 200px;
+}
+
+/* ── Audio layout ───────────────────────────────────────── */
+.call-audio-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.call-audio-avatar {
+  width: 100px;
+  height: 100px;
+  font-size: 2.5rem;
+}
+
+/* ── Outgoing call (Calling…) card ───────────────────────────────────────── */
+.outgoing-audio .call-modal {
+  padding: 2rem 2.5rem 1.75rem;
+}
+
+.outgoing-audio-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.outgoing-avatar-wrap {
+  position: relative;
+  margin-bottom: 0.25rem;
+}
+
+.outgoing-avatar {
+  width: 96px;
+  height: 96px;
+  font-size: 2.25rem;
+  animation: outgoing-pulse 2s ease-in-out infinite;
+}
+
+@keyframes outgoing-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(108, 99, 255, 0);
+  }
+}
+
+.outgoing-name {
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.outgoing-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #9ea3b8;
+  margin: 0;
+}
+
+.outgoing-status-icon {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.outgoing-duration-wrap {
+  margin: 0.5rem 0;
+  padding: 0.4rem 1rem;
+  background: rgba(79, 70, 229, 0.15);
+  border-radius: 999px;
+  border: 1px solid rgba(79, 70, 229, 0.3);
+}
+
+.outgoing-duration {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #a5b4fc;
+  letter-spacing: 0.02em;
+}
+
+/* Active call: audio duration more prominent */
+.call-duration-container.audio-duration {
+  margin: 0.5rem 0;
+}
+
+.call-duration-container.audio-duration .call-duration {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #c7d2fe;
+  padding: 0.35rem 1rem;
+  background: rgba(79, 70, 229, 0.2);
+  border-radius: 999px;
+  border: 1px solid rgba(79, 70, 229, 0.35);
+}
+
+/* ── Call icons (WhatsApp-style SVGs) ───────────────────── */
+.call-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.header-call-btn .call-icon {
+  display: block;
+}
+
+.outgoing-status-icon .call-icon,
+.outgoing-status-icon-svg.call-icon,
+.incoming-call-icon.call-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.2rem;
+}
+
+.call-control-btn .call-icon,
+.call-btn-icon .call-icon {
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── DM header call buttons ─────────────────────────────── */
+.header-call-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.header-call-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  color: #c7cbe8;
+}
+
+.header-call-btn:hover {
+  background: rgba(79, 70, 229, 0.18);
+  color: #e8eaf6;
+}

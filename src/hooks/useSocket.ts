@@ -1,25 +1,30 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { getSocketUrl } from '../api/client';
 
 export function useSocket() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
-  const mounted = useRef(true);
-
   useEffect(() => {
-    mounted.current = true;
     const url = getSocketUrl();
     const s = io(url, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       withCredentials: true,
     });
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(s);
-    s.on('connect', () => mounted.current && setConnected(true));
-    s.on('disconnect', () => mounted.current && setConnected(false));
+
+    // If it connects immediately / from cache
+    if (s.connected) {
+      setConnected(true);
+    }
+
+    s.on('connect', () => setConnected(true));
+    s.on('disconnect', () => setConnected(false));
+
     return () => {
-      mounted.current = false;
       s.close();
       setSocket(null);
       setConnected(false);
